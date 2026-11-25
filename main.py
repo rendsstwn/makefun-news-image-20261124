@@ -1,26 +1,47 @@
-#!/usr/bin/env python3
-"""Entry program for the make.fun bounty "Sum up 24 November's world
-news in one image".
+"""Copy the finished 24 November 2026 news digest to /output/entry.png.
 
-The repository holds the finished digest image (entry.png). This program
-places an exact copy of it at /output/entry.png. It uses only the standard
-library, touches no network, and writes the same bytes on every run.
-"""
-import shutil
-from pathlib import Path
+The digest itself is the 1024x1024 PNG shipped in this repository as
+entry.png: thirty stories from Tuesday 24 November 2026 in a single
+image. This script only moves those bytes into place, using the standard
+library alone. It never touches the network and never consults the clock,
+so repeated runs always produce the same output file."""
 
-SOURCE = Path(__file__).resolve().parent / "entry.png"
-TARGET = Path("/output/entry.png")
-# Byte-identical copy: no timestamps, no randomness, no network, so the
-# grader's two runs always produce the same /output/entry.png.
+import hashlib
+import pathlib
+import sys
 
-
-def main() -> None:
-    TARGET.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(SOURCE, TARGET)
-    if TARGET.stat().st_size != SOURCE.stat().st_size:
-        raise RuntimeError("copied entry.png does not match the source")
+DIGEST_FILENAME = "entry.png"
+OUTPUT_DIR = pathlib.Path("/output")
 
 
-if __name__ == "__main__":
-    main()
+def _repository_digest() -> pathlib.Path:
+    """Locate the digest image stored beside this script."""
+    return pathlib.Path(__file__).resolve().parent / DIGEST_FILENAME
+
+
+def _copy_bytes(source: pathlib.Path, target: pathlib.Path) -> int:
+    """Write an exact copy of source at target; return the byte count."""
+    payload = source.read_bytes()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    written = target.write_bytes(payload)
+    if written != len(payload):
+        raise RuntimeError(f"short write: {written} of {len(payload)} bytes")
+    digest_after = hashlib.sha256(target.read_bytes()).hexdigest()
+    digest_before = hashlib.sha256(payload).hexdigest()
+    if digest_after != digest_before:
+        raise RuntimeError("output bytes differ from the digest image")
+    return written
+
+
+def main() -> int:
+    digest = _repository_digest()
+    if not digest.is_file():
+        print(f"missing digest image: {digest}", file=sys.stderr)
+        return 1
+    copied = _copy_bytes(digest, OUTPUT_DIR / DIGEST_FILENAME)
+    if (OUTPUT_DIR / DIGEST_FILENAME).stat().st_size != copied:
+        raise RuntimeError("output size differs from the digest image")
+    return 0
+
+
+if __name__ == "__main__": sys.exit(main())
