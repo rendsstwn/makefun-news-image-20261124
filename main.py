@@ -1,53 +1,64 @@
-"""Place the 24 November 2026 news digest at /output/entry.png.
+#!/usr/bin/env python3
+"""Carry the 24 November 2026 one-picture news roundup to its output slot.
 
-The digest is the 1024x1024 PNG shipped beside this script as
-entry.png: thirty stories from Tuesday 24 November 2026, led by the
-Huawei jury verdict, in a single image. This script only moves those
-bytes into place with the standard library. It never touches the
-network and never consults the clock, so repeated runs always write
-the same output file.
-"""
+The picture itself is bundled next to this file as entry.png: a square
+1024-pixel image packing thirty news items from Tuesday, 24 November
+2026, headed by the Huawei trade-secret verdict. This program does
+nothing but ferry that file to /output/entry.png with the standard
+library alone. It talks to no network, throws no dice, and never
+looks at the time, so each invocation leaves exactly the same bytes
+behind."""
 
-import hashlib
-import pathlib
-import sys
+from hashlib import sha256
+from pathlib import Path
 
-DIGEST_NAME = "entry.png"
-DEST_DIR = pathlib.Path("/output")
-
-
-def find_digest() -> pathlib.Path:
-    """Return the digest image stored next to this script."""
-    return pathlib.Path(__file__).resolve().parent / DIGEST_NAME
+PICTURE = "entry.png"
+OUT = Path("/output") / PICTURE
 
 
-def _digests_match(first: pathlib.Path, second: bytes) -> bool:
-    """True when a file's SHA-256 equals the digest of given bytes."""
-    return hashlib.sha256(first.read_bytes()).hexdigest() == hashlib.sha256(second).hexdigest()
+def _fingerprint(blob):
+    """SHA-256 hex digest of one bytes object."""
+    return sha256(blob).hexdigest()
 
 
-def copy_checked(origin: pathlib.Path, dest: pathlib.Path) -> int:
-    """Copy origin to dest, verifying size and SHA-256; return bytes."""
-    data = origin.read_bytes()
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    written = dest.write_bytes(data)
-    if written != len(data):
-        raise RuntimeError(f"short write: {written} of {len(data)} bytes")
-    if not _digests_match(dest, data):
-        raise RuntimeError("output bytes differ from the digest image")
-    return written
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 
 
-def run() -> int:
-    digest = find_digest()
-    if not digest.is_file():
-        print(f"missing digest image: {digest}", file=sys.stderr)
-        return 1
-    copied = copy_checked(digest, DEST_DIR / DIGEST_NAME)
-    if (DEST_DIR / DIGEST_NAME).stat().st_size != copied:
-        raise RuntimeError("output size differs from the digest image")
-    return 0
+def _read_bundled():
+    """Load the bundled picture, failing loudly when it is not there."""
+    folder = Path(__file__).resolve().parent
+    bundled = folder / PICTURE
+    if not bundled.exists():
+        print("bundled picture not found: %s" % bundled)
+        raise SystemExit(1)
+    blob = bundled.read_bytes()
+    if blob[:8] != PNG_MAGIC:
+        raise SystemExit("bundled file is not a PNG image")
+    return blob
 
 
-if __name__ == "__main__":
-    sys.exit(run())
+def _same(first, second):
+    """True when two byte strings share one SHA-256 fingerprint."""
+    return _fingerprint(first) == _fingerprint(second)
+
+
+def _deliver(blob):
+    """Write blob out, then check the copy by length and fingerprint."""
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_bytes(blob)
+    again = OUT.read_bytes()
+    if len(again) != len(blob):
+        raise SystemExit("written copy has the wrong length")
+    if not _same(again, blob):
+        raise SystemExit("written copy has the wrong fingerprint")
+    return len(again)
+
+
+def main():
+    payload = _read_bundled()
+    _deliver(payload)
+    print("placed %d bytes at %s" % (len(payload), OUT))
+
+
+if __name__ == '__main__':
+    main()

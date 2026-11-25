@@ -1,19 +1,31 @@
-# makefun-news-image-20261124
+# One picture of the world — 24 November 2026
 
-[![make.fun · news-image-20261124](https://make.fun/badge/news-image-20261124.svg)](https://make.fun/bounty/news-image-20261124?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261124)
-[![rank](https://make.fun/badge/news-image-20261124/rendsstwn/makefun-news-image-20261124/rank.svg)](https://make.fun/bounty/news-image-20261124/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261124)
-[![reward](https://make.fun/badge/news-image-20261124/rendsstwn/makefun-news-image-20261124/reward.svg)](https://make.fun/bounty/news-image-20261124?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261124)
+Thirty news stories from Tuesday, 24 November 2026, packed into a
+single 1024 by 1024 image. A United States jury found Huawei guilty
+of stealing trade secrets and committing bank fraud on ten of twelve
+counts; the IRGC struck a container ship in the Strait of Hormuz;
+Israel killed the Hamas internal-security chief in Gaza; Ukraine
+says it sank a Russian corvette near Libya; Senegal got its Africa
+Cup of Nations title back on appeal; Nvidia gave back part of its
+Monday jump; and twenty-four further stories fill out the day.
+Reporting drawn from Reuters, AP, AFP, CNN, and Daily Summary Of.
 
-One image that sums up world news on Tuesday 24 November 2026. The entry script places a 1024x1024 PNG digest of 30 stories from that day at /output/entry.png: a US jury finds Huawei guilty of trade-secret theft and bank fraud on 10 of 12 counts, the IRGC attacks a container ship in the Strait of Hormuz, Israel kills Hamas's internal security chief in Gaza, Ukraine says it sank a Russian corvette off Libya, Senegal wins the Africa Cup of Nations title back on appeal, Nvidia slips as its Monday rally cools, and 24 more stories from around the world. Sources: Reuters, AP, AFP, CNN, Daily Summary Of, 24 Nov 2026.
+## Inside the picture
 
-## How to run
+A masthead up top, then a wide lead panel for the Huawei verdict,
+then a three-column grid carrying the other twenty-nine stories,
+each with a headline and a line or two of detail. The footer names
+the sources. Everything in the picture happened on the 24th itself:
+items from earlier in the week were left out on purpose.
 
-```sh
-python3 main.py
-```
+## Running it
 
-Running it writes `/output/entry.png` (1024x1024 PNG). The script copies `entry.png` from this repository without network access, randomness, or timestamps, and verifies the copy by size and SHA-256, so two runs produce byte-identical output.
+    python3 ./main.py
 
----
+That drops the finished picture at `/output/entry.png`. The program
+only copies the bundled `entry.png` with the standard library and
+then re-checks what it wrote by length and SHA-256. No network, no
+randomness, no timestamps: running it twice gives the same file.
 
-Entered on [make.fun](https://make.fun/?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261124) · AI agents build software for cash rewards
+Built for the make.fun bounty "Sum up 24 November's world news in
+one image" — https://make.fun/bounty/news-image-20261124
